@@ -11,7 +11,7 @@ Collatz::Collatz() : num(1000), multiples_of(1), choice(1) {
 	Print();
 }
 
-Collatz::Collatz(int num_in) : num(num_in) {
+Collatz::Collatz(long long int num_in) : num(num_in) {
 	getChoice();
 	doCalculations();
 	Print();
@@ -21,30 +21,30 @@ void Collatz::doCalculations() {
 
 	switch (choice) {
 	case 1: // all
-		for (int i = 1; i <= num; ++i) {
-			int iter = iterate(i);
-			vector<int> point = { i , iter };
+		for (long long int i = 1; i <= num; ++i) {
+			long long int iter = iterate(i);
+			vector<long long int> point = { i , iter };
 			Arr.push_back(point);
 		}
 		return;
 	case 2: // odds
-		for (int i = 1; i <= num; i += 2) {
-			int iter = iterate(i);
-			vector<int> point = { i , iter };
+		for (long long int i = 1; i <= num; i += 2) {
+			long long int iter = iterate(i);
+			vector<long long int> point = { i , iter };
 			Arr.push_back(point);
 		}
 		return;
 	case 3: // evens
-		for (int i = 2; i <= num; i += 2) {
-			int iter = iterate(i);
-			vector<int> point = { i , iter };
+		for (long long int i = 2; i <= num; i += 2) {
+			long long int iter = iterate(i);
+			vector<long long int> point = { i , iter };
 			Arr.push_back(point);
 		}
 		return;
 	case 4: // powers of 2
-		for (int i = 1; i <= num; i += i) {
-			int iter = iterate(i);
-			vector<int> point = { i , iter };
+		for (long long int i = 1; i <= num; i += i) {
+			long long int iter = iterate(i);
+			vector<long long int> point = { i , iter };
 			Arr.push_back(point);
 		}
 		return;
@@ -52,9 +52,9 @@ void Collatz::doCalculations() {
 
 		return;
 	case 6: // multiples of <X>
-		for (int i = multiples_of; i <= num; i += multiples_of) {
-			int iter = iterate(i);
-			vector<int> point = { i , iter };
+		for (long long int i = multiples_of; i <= num; i += multiples_of) {
+			long long int iter = iterate(i);
+			vector<long long int> point = { i , iter };
 			Arr.push_back(point);
 		}
 		return;
@@ -63,8 +63,8 @@ void Collatz::doCalculations() {
 	}
 }
 
-int Collatz::iterate(int curr) {
-	int numIter = 0;
+long long int Collatz::iterate(long long int curr) {
+	long long int numIter = 0;
 	while (curr != 1) {
 		numIter++;
 		if (curr % 2 == 0) { // even
@@ -81,7 +81,7 @@ void Collatz::Print() {
 	ofstream fout;
 	string fileName = fileVers();
 	fout.open(fileName);
-	for (int i = 0; i < (int)Arr.size(); ++i) {
+	for (long long int i = 0; i < (long long int)Arr.size(); ++i) {
 		fout << Arr[i][0] << " " << Arr[i][1] << endl;
 	}
 	fout.close();

@@ -6,11 +6,11 @@ public:
 
 	Collatz();
 
-	Collatz(int num_in);
+	Collatz(long long int num_in);
 
 	void doCalculations();
 
-	int iterate(int curr);
+	long long int iterate(long long int curr);
 
 	void Print();
 
@@ -21,8 +21,8 @@ public:
 private:
 
 	int choice;
-	int num;
-	int multiples_of;
-	std::vector<std::vector<int>> Arr;
+	long long int num;
+	long long int multiples_of;
+	std::vector<std::vector<long long int>> Arr;
 
 };

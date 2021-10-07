@@ -30,16 +30,12 @@ void printMenu() {
 }
 
 int main() {
-	int initNum;
-	cout << "Enter the upper bound:   ";
+	long long int initNum;
+	cout << "Enter the upper bound between 1 and 9,223,372,036,854,775,807:   ";
 	cin >> initNum;
 	printMenu();
 	Collatz c(initNum);
 	cout << "\nCalculations completed. Results are in the corresponding '*txt' file." << endl;
-
-	ofstream fout;
-	fout.open("output.txt");
-	fout << "this worked";
 
 	return 0;
 }
