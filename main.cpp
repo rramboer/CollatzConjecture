@@ -25,18 +25,17 @@ using namespace std;
 
 void printMenu() {
 	cout << "Options:\n" << "1. All\n" << "2. Odds\n" << "3. Evens\n"
-		<< "4. Powers of Two\n" << "5. Primes\n" << "6. Multiples of <X>" << "7. EXIT" << endl;
+		<< "4. Powers of Two\n" << "5. Primes\n" << "6. Multiples of <X>" << endl;
 	return;
 }
-
 
 int main() {
 	int initNum;
 	cout << "Enter the upper bound:   ";
 	cin >> initNum;
 	printMenu();
-	doCalculations(initNum);
-	cout << "Calculations completed. Results are in 'output.txt'." << endl;
+	Collatz c(initNum);
+	cout << "\nCalculations completed. Results are in the corresponding '*txt' file." << endl;
 
 	return 0;
 }

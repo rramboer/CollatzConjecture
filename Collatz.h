@@ -1,12 +1,27 @@
 #pragma once
-#include <string>
 
-void doCalculations(int num);
+class Collatz {
+public:
 
-int Collatz(int num);
+	Collatz();
 
-void Print(vector<vector<int>> Arr, int& choice);
+	Collatz(int num_in);
 
-string fileVers(int& choice);
+	void doCalculations();
 
-int getChoice();
+	int iterate(int curr);
+
+	void Print();
+
+	std::string fileVers();
+
+	int getChoice();
+
+private:
+
+	int choice;
+	int num;
+	int multiples_of;
+	std::vector<std::vector<int>> Arr;
+
+};
