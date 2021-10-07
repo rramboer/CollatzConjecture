@@ -78,9 +78,9 @@ int Collatz::iterate(int curr) {
 }
 
 void Collatz::Print() {
-	fstream fout;
+	ofstream fout;
 	string fileName = fileVers();
-	fout.open("output.txt");
+	fout.open(fileName);
 	for (int i = 0; i < (int)Arr.size(); ++i) {
 		fout << Arr[i][0] << " " << Arr[i][1] << endl;
 	}

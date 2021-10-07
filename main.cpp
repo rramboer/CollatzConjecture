@@ -37,5 +37,9 @@ int main() {
 	Collatz c(initNum);
 	cout << "\nCalculations completed. Results are in the corresponding '*txt' file." << endl;
 
+	ofstream fout;
+	fout.open("output.txt");
+	fout << "this worked";
+
 	return 0;
 }

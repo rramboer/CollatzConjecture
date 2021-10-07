@@ -1,6 +1,7 @@
 #pragma once
 
 class Collatz {
+
 public:
 
 	Collatz();
