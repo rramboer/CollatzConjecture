@@ -23,23 +23,20 @@
 #include "Collatz.h"
 using namespace std;
 
+void printMenu() {
+	cout << "Options:\n" << "1. All\n" << "2. Odds\n" << "3. Evens\n"
+		<< "4. Powers of Two\n" << "5. Primes\n" << "6. Multiples of <X>" << "7. EXIT" << endl;
+	return;
+}
+
 
 int main() {
-	fstream fout;
-	fout.open("output.txt");
-	vector<vector<int>> numArr;
 	int initNum;
 	cout << "Enter the upper bound:   ";
 	cin >> initNum;
-	for (int i = 1; i <= initNum; ++i) {
-		int iter = Collatz(i);
-		vector<int> point = { i , iter };
-		numArr.push_back(point);
-	}
-	for (int i = 0; i < (int)numArr.size(); ++i) {
-		fout << numArr[i][0] << " " << numArr[i][1] << endl;
-	}
+	printMenu();
+	doCalculations(initNum);
 	cout << "Calculations completed. Results are in 'output.txt'." << endl;
-	fout.close();
+
 	return 0;
 }
