@@ -50,6 +50,12 @@ void Collatz::doCalculations() {
 		return;
 	case 5: // primes
 
+
+
+
+
+
+
 		return;
 	case 6: // multiples of <X>
 		for (long long int i = multiples_of; i <= num; i += multiples_of) {
