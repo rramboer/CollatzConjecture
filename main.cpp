@@ -35,6 +35,9 @@ int main() {
 	cin >> initNum;
 	printMenu();
 	Collatz c(initNum);
+
+	cout << "Maximum iteration count " << c.maxIter << " at index " << c.maxVal << "." << endl;
+
 	cout << "\nCalculations completed. Results are in the corresponding '*txt' file." << endl;
 
 	return 0;

@@ -6,12 +6,12 @@
 #include "Collatz.h"
 using namespace std;
 
-Collatz::Collatz() : num(1000), multiples_of(1), choice(1) { 
+Collatz::Collatz() : num(1000), multiples_of(1), choice(1), maxVal(0), maxIter(0) { 
 	doCalculations();
 	Print();
 }
 
-Collatz::Collatz(long long int num_in) : num(num_in) {
+Collatz::Collatz(long long int num_in) : num(num_in), maxVal(0), maxIter(0) {
 	getChoice();
 	doCalculations();
 	Print();
@@ -24,6 +24,7 @@ void Collatz::doCalculations() {
 		for (long long int i = 1; i <= num; ++i) {
 			long long int iter = iterate(i);
 			vector<long long int> point = { i , iter };
+			isMax(point);
 			Arr.push_back(point);
 		}
 		return;
@@ -31,6 +32,7 @@ void Collatz::doCalculations() {
 		for (long long int i = 1; i <= num; i += 2) {
 			long long int iter = iterate(i);
 			vector<long long int> point = { i , iter };
+			isMax(point);
 			Arr.push_back(point);
 		}
 		return;
@@ -38,6 +40,7 @@ void Collatz::doCalculations() {
 		for (long long int i = 2; i <= num; i += 2) {
 			long long int iter = iterate(i);
 			vector<long long int> point = { i , iter };
+			isMax(point);
 			Arr.push_back(point);
 		}
 		return;
@@ -45,28 +48,40 @@ void Collatz::doCalculations() {
 		for (long long int i = 1; i <= num; i += i) {
 			long long int iter = iterate(i);
 			vector<long long int> point = { i , iter };
+			isMax(point);
 			Arr.push_back(point);
 		}
 		return;
 	case 5: // primes
-
-
-
-
-
-
-
+		for (long long int i = 1; i <= num; i += 2) { // optimize to only search through odds
+			if (isPrime(i)) {
+				long long int iter = iterate(i);
+				vector<long long int> point = { i , iter };
+				isMax(point);
+				Arr.push_back(point);
+			}
+		}
 		return;
 	case 6: // multiples of <X>
 		for (long long int i = multiples_of; i <= num; i += multiples_of) {
 			long long int iter = iterate(i);
 			vector<long long int> point = { i , iter };
+			isMax(point);
 			Arr.push_back(point);
 		}
 		return;
 	default:
 		return;
 	}
+}
+
+bool Collatz::isPrime(long long int testNum) {
+	for (long long int i = 2; i < testNum / 2; ++i) {
+		if (testNum % i == 0) {
+			return false;
+		}
+	}
+	return true;
 }
 
 long long int Collatz::iterate(long long int curr) {
@@ -123,4 +138,12 @@ int Collatz::getChoice() {
 	}
 	cout << endl;
 	return choice;
+}
+
+// comment out all calls to isMax() to speed up runtime
+void Collatz::isMax(vector<long long int>& point) {
+	if (point[1] > maxIter) {
+		maxVal = point[0];
+		maxIter = point[1];
+	}
 }
