@@ -23,6 +23,7 @@
 #include "Collatz.h"
 using namespace std;
 
+// Prints the options menu
 void printMenu() {
 	cout << "Options:\n" << "1. All\n" << "2. Odds\n" << "3. Evens\n"
 		<< "4. Powers of Two\n" << "5. Primes\n" << "6. Multiples of <X>" << endl;
