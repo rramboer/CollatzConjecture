@@ -10,19 +10,19 @@ public:
 
 	void doCalculations();
 
-	bool isPrime(long long int testNum);
+	bool isPrime(long long int testNum); // Determines if an input is prime
 
-	long long int iterate(long long int curr);
+	long long int iterate(long long int curr); // Calculates the number of iterations
 
-	void Print();
+	void Print(); // Writes the output to the corresponding file
 
-	std::string fileVers();
+	std::string fileVers(); // Returns correct file name based on user selection
 
-	int getChoice();
+	int getChoice(); // Retrieves user input
 
-	void isMax(std::vector<long long int>& point);
+	void isMax(std::vector<long long int>& point); // Sets and updates the maximum number of iterations
 
-	long long int maxVal, maxIter; // track maximum iteration count and index
+	long long int maxVal, maxIter; // Tracks maximum iteration count and index
 
 private:
 
@@ -30,6 +30,5 @@ private:
 	long long int num;
 	long long int multiples_of;
 	std::vector<std::vector<long long int>> Arr;
-	
 
 };
