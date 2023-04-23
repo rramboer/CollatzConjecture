@@ -12,6 +12,3 @@ The conjecture is that no matter what value of n, the sequence will always reach
 "output.txt" contains the list of resulting iterations in the format:
 
 STARTING NUMBER  -  NUMBER OF ITERATIONS BEFORE REACHING 1
-
-
-Ryan Ramboer 2021
