@@ -1,0 +1,24 @@
+# Curated clang-tidy configuration. Run over the CMake compile database:
+#   clang-tidy -p build/debug Collatz.cpp main.cpp
+#
+# Justified suppressions:
+#   modernize-use-trailing-return-type  - stylistic; this codebase uses leading return types
+#   readability-identifier-length       - short loop variables (i, c) are idiomatic here
+#   *-magic-numbers                     - the 3n+1 rule and small test constants are the domain
+#   misc-include-cleaner                - too coarse with the standard library; include hygiene
+#                                         is enforced by keeping Collatz.h self-contained
+Checks: >
+  bugprone-*,
+  cppcoreguidelines-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  readability-*,
+  -modernize-use-trailing-return-type,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -misc-include-cleaner
+WarningsAsErrors: '*'
+HeaderFilterRegex: '(Collatz)\.h$'
+FormatStyle: file

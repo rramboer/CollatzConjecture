@@ -1,0 +1,8 @@
+# Project code style. Run: clang-format -i *.cpp *.h tests/*.cpp
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 100
+UseTab: Never
+PointerAlignment: Left
+DerivePointerAlignment: false
+InsertNewlineAtEOF: true
