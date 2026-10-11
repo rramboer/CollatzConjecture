@@ -1,4 +1,5 @@
 #include "Collatz.h"
+#include "Input.h"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -106,16 +107,21 @@ TEST_CASE("mode PowersOfTwo records each power once and terminates at the "
     CHECK(full.results().back().iterations == 63);
 }
 
-TEST_CASE("mode Primes preserves the original program's output: 1 is listed, "
-          "2 is not",
-          "[modes]") {
+TEST_CASE("mode Primes records exactly the primes up to the bound", "[modes]") {
     Collatz c(30, Collatz::Mode::Primes);
     c.doCalculations();
-    // The original program tested only odd starting values with a primality
-    // test that accepted 1; this quirk is preserved so regenerated primes.txt
-    // files match previously published results byte-for-byte.
-    CHECK(starts(c) == std::vector<std::uint64_t>{1, 3, 5, 7, 11, 13, 17, 19, 23, 29});
-    CHECK(c.results().front().iterations == 0); // iterate(1)
+    CHECK(starts(c) == std::vector<std::uint64_t>{2, 3, 5, 7, 11, 13, 17, 19, 23, 29});
+    CHECK(c.results().front().iterations == 1); // iterate(2)
+}
+
+TEST_CASE("mode Primes handles bounds below 3", "[modes]") {
+    Collatz one(1, Collatz::Mode::Primes);
+    one.doCalculations();
+    CHECK(one.results().empty());
+
+    Collatz two(2, Collatz::Mode::Primes);
+    two.doCalculations();
+    CHECK(starts(two) == std::vector<std::uint64_t>{2});
 }
 
 TEST_CASE("mode MultiplesOf steps by the chosen multiple", "[modes]") {
@@ -154,4 +160,25 @@ TEST_CASE("print writes one 'START ITERATIONS' pair per line", "[output]") {
     fin.close();
     CHECK(lines == std::vector<std::string>{"1 0", "2 1", "3 7", "4 2", "5 5"});
     CHECK(std::remove(c.fileVers().c_str()) == 0);
+}
+
+TEST_CASE("parseUnsigned accepts plain decimal digits across the 64-bit range", "[input]") {
+    CHECK(parseUnsigned("0") == 0U);
+    CHECK(parseUnsigned("42") == 42U);
+    CHECK(parseUnsigned("007") == 7U);
+    CHECK(parseUnsigned("9223372036854775808") == std::uint64_t{1} << 63);
+    CHECK(parseUnsigned("18446744073709551615") == kMax);
+}
+
+TEST_CASE("parseUnsigned rejects anything that is not entirely a 64-bit number", "[input]") {
+    CHECK_FALSE(parseUnsigned("").has_value());
+    CHECK_FALSE(parseUnsigned("18446744073709551616").has_value()); // 2^64
+    CHECK_FALSE(parseUnsigned("-5").has_value());
+    CHECK_FALSE(parseUnsigned("+5").has_value());
+    CHECK_FALSE(parseUnsigned("1,000,000").has_value());
+    CHECK_FALSE(parseUnsigned("1e6").has_value());
+    CHECK_FALSE(parseUnsigned("1.5").has_value());
+    CHECK_FALSE(parseUnsigned("12abc").has_value());
+    CHECK_FALSE(parseUnsigned("0x10").has_value());
+    CHECK_FALSE(parseUnsigned(" 5").has_value());
 }

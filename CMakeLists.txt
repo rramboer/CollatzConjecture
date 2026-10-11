@@ -17,7 +17,7 @@ target_compile_options(collatz_warnings INTERFACE
     $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall -Wextra -Wpedantic>
     $<$<AND:$<BOOL:${COLLATZ_WERROR}>,$<CXX_COMPILER_ID:GNU,Clang,AppleClang>>:-Werror>)
 
-add_library(collatz_lib STATIC Collatz.cpp)
+add_library(collatz_lib STATIC Collatz.cpp Input.cpp)
 target_include_directories(collatz_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(collatz_lib PRIVATE collatz_warnings)
 
