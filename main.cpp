@@ -1,45 +1,77 @@
-/*
-	Collatz Conjecture
+// Interactive driver for the Collatz conjecture calculator.
+// Prompts for an upper bound and a mode, then writes the iteration counts
+// to the mode's text file. See README.md for details.
 
-	The Collatz conjecture is a conjecture in mathematics that concerns sequences defined as follows: 
-	start with any positive integer n. Then each term is obtained from the previous term as follows: 
-	if the previous term is even, the next term is one half of the previous term. 
-	If the previous term is odd, the next term is 3 times the previous term plus 1. 
-	The conjecture is that no matter what value of n, the sequence will always reach 1.
-
-	(https://en.wikipedia.org/wiki/Collatz_conjecture)
-
-
-	"output.txt" contains the list of resulting iterations in the format:
-
-	STARTING NUMBER  -  NUMBER OF ITERATIONS BEFORE REACHING 1
-*/
-
-#include <iostream>
-#include <cmath>
-#include <string>
-#include <vector>
-#include <fstream>
 #include "Collatz.h"
-using namespace std;
+
+#include <cstdint>
+#include <cstdlib>
+#include <iostream>
+
+namespace {
 
 // Prints the options menu
 void printMenu() {
-	cout << "Options:\n" << "1. All\n" << "2. Odds\n" << "3. Evens\n"
-		<< "4. Powers of Two\n" << "5. Primes\n" << "6. Multiples of <X>" << endl;
-	return;
+    std::cout << "Options:\n"
+              << "1. All\n"
+              << "2. Odds\n"
+              << "3. Evens\n"
+              << "4. Powers of Two\n"
+              << "5. Primes\n"
+              << "6. Multiples of <X>\n";
 }
 
+// Reads one integer from stdin; returns false on non-numeric input or EOF.
+bool readNumber(long long& value) { return static_cast<bool>(std::cin >> value); }
+
+} // namespace
+
 int main() {
-	long long int initNum;
-	cout << "Enter the upper bound between 1 and 9,223,372,036,854,775,807:   ";
-	cin >> initNum;
-	printMenu();
-	Collatz c(initNum);
+    long long initNum = 0;
+    std::cout << "Enter the upper bound (a positive integer):   ";
+    if (!readNumber(initNum) || initNum < 1) {
+        std::cerr << "Error: the upper bound must be a positive integer.\n";
+        return EXIT_FAILURE;
+    }
 
-	cout << "Maximum iteration count " << c.maxIter << " at index " << c.maxVal << "." << endl;
+    printMenu();
+    long long choice = 0;
+    std::cout << "Select a mode:\t";
+    if (!readNumber(choice) || choice < 1 || choice > 6) {
+        std::cerr << "Error: the mode must be a number between 1 and 6.\n";
+        return EXIT_FAILURE;
+    }
+    std::cout << '\n';
 
-	cout << "\nCalculations completed. Results are in the corresponding '*txt' file." << endl;
+    long long multiplesOf = 1;
+    if (choice == 6) {
+        std::cout << "Which integer multiples?\t";
+        if (!readNumber(multiplesOf) || multiplesOf < 1) {
+            std::cerr << "Error: the multiple must be a positive integer.\n";
+            return EXIT_FAILURE;
+        }
+    }
+    std::cout << "\n";
 
-	return 0;
+    Collatz c(static_cast<std::uint64_t>(initNum), static_cast<Collatz::Mode>(choice),
+              static_cast<std::uint64_t>(multiplesOf));
+    c.doCalculations();
+
+    for (const std::uint64_t start : c.overflowed()) {
+        std::cerr << "Warning: the trajectory of " << start
+                  << " exceeds 64 bits and was skipped.\n";
+    }
+
+    if (!c.results().empty()) {
+        std::cout << "Maximum iteration count " << c.maxIter() << " reached by starting value "
+                  << c.maxStart() << ".\n";
+    }
+
+    if (!c.print()) {
+        std::cerr << "Error: could not write results to '" << c.fileVers() << "'.\n";
+        return EXIT_FAILURE;
+    }
+
+    std::cout << "\nCalculations completed. Results are in '" << c.fileVers() << "'.\n";
+    return EXIT_SUCCESS;
 }

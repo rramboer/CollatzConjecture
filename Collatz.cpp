@@ -1,149 +1,149 @@
-#include <iostream>
-#include <cmath>
-#include <string>
-#include <vector>
-#include <fstream>
 #include "Collatz.h"
-using namespace std;
 
-Collatz::Collatz() : num(1000), multiples_of(1), choice(1), maxVal(0), maxIter(0) { 
-	doCalculations();
-	Print();
-}
+#include <cstdint>
+#include <fstream>
+#include <limits>
+#include <optional>
+#include <string>
 
-Collatz::Collatz(long long int num_in) : num(num_in), maxVal(0), maxIter(0) {
-	getChoice();
-	doCalculations();
-	Print();
-}
+namespace {
+constexpr std::uint64_t kMax = std::numeric_limits<std::uint64_t>::max();
+} // namespace
+
+Collatz::Collatz(std::uint64_t upperBound, Mode mode, std::uint64_t multiplesOf)
+    : mode_(mode), num_(upperBound), multiplesOf_(multiplesOf) {}
 
 void Collatz::doCalculations() {
-
-	switch (choice) {
-	case 1: // all
-		for (long long int i = 1; i <= num; ++i) {
-			long long int iter = iterate(i);
-			vector<long long int> point = { i , iter };
-			isMax(point);
-			Arr.push_back(point);
-		}
-		return;
-	case 2: // odds
-		for (long long int i = 1; i <= num; i += 2) {
-			long long int iter = iterate(i);
-			vector<long long int> point = { i , iter };
-			isMax(point);
-			Arr.push_back(point);
-		}
-		return;
-	case 3: // evens
-		for (long long int i = 2; i <= num; i += 2) {
-			long long int iter = iterate(i);
-			vector<long long int> point = { i , iter };
-			isMax(point);
-			Arr.push_back(point);
-		}
-		return;
-	case 4: // powers of 2
-		for (long long int i = 1; i <= num; i += i) {
-			long long int iter = iterate(i);
-			vector<long long int> point = { i , iter };
-			isMax(point);
-			Arr.push_back(point);
-		}
-		return;
-	case 5: // primes
-		for (long long int i = 1; i <= num; i += 2) { // optimize to only search through odds
-			if (isPrime(i)) {
-				long long int iter = iterate(i);
-				vector<long long int> point = { i , iter };
-				isMax(point);
-				Arr.push_back(point);
-			}
-		}
-		return;
-	case 6: // multiples of <X>
-		for (long long int i = multiples_of; i <= num; i += multiples_of) {
-			long long int iter = iterate(i);
-			vector<long long int> point = { i , iter };
-			isMax(point);
-			Arr.push_back(point);
-		}
-		return;
-	default:
-		return;
-	}
+    switch (mode_) {
+    case Mode::All:
+        recordRange(1, 1);
+        return;
+    case Mode::Odds:
+        recordRange(1, 2);
+        return;
+    case Mode::Evens:
+        recordRange(2, 2);
+        return;
+    case Mode::PowersOfTwo:
+        for (std::uint64_t i = 1; i <= num_;) {
+            record(i);
+            if (i > kMax / 2) {
+                break; // doubling again would wrap around
+            }
+            i *= 2;
+        }
+        return;
+    case Mode::Primes:
+        // Reproduces the historical output of this mode byte-for-byte: the
+        // original program tested only odd starting values, and its primality
+        // test accepted 1, so the first line is "1 0" and 2 never appears.
+        // isPrime() itself is mathematically correct; it agrees with the
+        // original test for every odd value >= 3 checked by the loop below.
+        if (num_ >= 1) {
+            record(1);
+        }
+        for (std::uint64_t i = 3; i <= num_; i += 2) {
+            if (isPrime(i)) {
+                record(i);
+            }
+            if (i > kMax - 2) {
+                break;
+            }
+        }
+        return;
+    case Mode::MultiplesOf:
+        recordRange(multiplesOf_, multiplesOf_);
+        return;
+    }
 }
 
-bool Collatz::isPrime(long long int testNum) {
-	for (long long int i = 2; i < testNum / 2; ++i) {
-		if (testNum % i == 0) {
-			return false;
-		}
-	}
-	return true;
+void Collatz::record(std::uint64_t start) {
+    const std::optional<std::uint64_t> iter = iterate(start);
+    if (!iter) {
+        overflowed_.push_back(start);
+        return;
+    }
+    if (results_.empty() || *iter > maxIter_) {
+        maxStart_ = start;
+        maxIter_ = *iter;
+    }
+    results_.push_back(CollatzResult{.start = start, .iterations = *iter});
 }
 
-long long int Collatz::iterate(long long int curr) {
-	long long int numIter = 0;
-	while (curr != 1) {
-		numIter++;
-		if (curr % 2 == 0) { // even
-			curr = curr / 2;
-		}
-		else if (curr % 2 != 0) { // odd
-			curr = 3 * curr + 1;
-		}
-	}
-	return numIter;
+void Collatz::recordRange(std::uint64_t first, std::uint64_t step) {
+    if (first == 0 || step == 0) {
+        return; // defensive: iterate(0) has no answer and step 0 never ends
+    }
+    for (std::uint64_t i = first; i <= num_;) {
+        record(i);
+        if (i > kMax - step) {
+            break; // the next step would wrap around
+        }
+        i += step;
+    }
 }
 
-void Collatz::Print() {
-	ofstream fout;
-	string fileName = fileVers();
-	fout.open(fileName);
-	for (long long int i = 0; i < (long long int)Arr.size(); ++i) {
-		fout << Arr[i][0] << " " << Arr[i][1] << endl;
-	}
-	fout.close();
-	return;
+bool Collatz::isPrime(std::uint64_t testNum) {
+    if (testNum < 2) {
+        return false;
+    }
+    if (testNum % 2 == 0) {
+        return testNum == 2;
+    }
+    for (std::uint64_t i = 3; i <= testNum / i; i += 2) {
+        if (testNum % i == 0) {
+            return false;
+        }
+    }
+    return true;
 }
 
-string Collatz::fileVers() {
-	switch (choice) {
-	case 1:
-		return "output.txt";
-	case 2:
-		return "odds.txt";
-	case 3:
-		return "evens.txt";
-	case 4:
-		return "pow_two.txt";
-	case 5:
-		return "primes.txt";
-	case 6:
-		return "multiples_of_" + to_string(multiples_of) + ".txt";
-	default:
-		return "output.txt";
-	}
+std::optional<std::uint64_t> Collatz::iterate(std::uint64_t start) {
+    if (start == 0) {
+        return std::nullopt; // 0 -> 0 -> ... never reaches 1
+    }
+    std::uint64_t curr = start;
+    std::uint64_t numIter = 0;
+    while (curr != 1) {
+        ++numIter;
+        if (curr % 2 == 0) { // even
+            curr = curr / 2;
+        } else { // odd
+            if (curr > (kMax - 1) / 3) {
+                return std::nullopt; // 3n + 1 would overflow 64 bits
+            }
+            curr = (3 * curr) + 1;
+        }
+    }
+    return numIter;
 }
 
-int Collatz::getChoice() {
-	cout << "Select a mode:	";
-	cin >> choice;
-	cout << endl;
-	if (choice == 6) {
-		cout << "Which integer multiples?	";
-		cin >> multiples_of;
-	}
-	cout << endl;
-	return choice;
+bool Collatz::print() const {
+    std::ofstream fout(fileVers());
+    if (!fout) {
+        return false;
+    }
+    for (const CollatzResult& point : results_) {
+        fout << point.start << ' ' << point.iterations << '\n';
+    }
+    fout.flush();
+    return fout.good();
 }
 
-// comment out all calls to isMax() to speed up runtime
-void Collatz::isMax(vector<long long int>& point) {
-	if (point[1] > maxIter) {
-		maxVal = point[0];
-		maxIter = point[1];
-	}
+std::string Collatz::fileVers() const {
+    switch (mode_) {
+    case Mode::All:
+        return "output.txt";
+    case Mode::Odds:
+        return "odds.txt";
+    case Mode::Evens:
+        return "evens.txt";
+    case Mode::PowersOfTwo:
+        return "pow_two.txt";
+    case Mode::Primes:
+        return "primes.txt";
+    case Mode::MultiplesOf:
+        return "multiples_of_" + std::to_string(multiplesOf_) + ".txt";
+    }
+    return "output.txt";
 }
