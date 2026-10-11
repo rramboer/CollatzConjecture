@@ -73,10 +73,9 @@ space-separated pair `STARTING_NUMBER ITERATIONS`, for example:
 
 Notes:
 
-- Mode 5 (Primes) deliberately reproduces the original program's output byte-for-byte:
-  its first line is `1 0` (the original primality test accepted 1) and `2` never appears
-  (only odd starting values are tested). This quirk is kept so regenerated `primes.txt`
-  files match previously published results.
+- Every number you enter must be plain decimal digits (no commas, signs, decimals or
+  exponents) from 1 to 18,446,744,073,709,551,615 (2^64 − 1). Anything else is rejected
+  with an error.
 - Starting values whose trajectory would exceed 64 bits are skipped with a warning
   instead of silently overflowing.
 - All results are buffered in memory before writing, so very large bounds
@@ -103,9 +102,8 @@ ctest --preset debug
 
 ## Development
 
-- Format: `clang-format -i main.cpp Collatz.cpp Collatz.h tests/collatz_tests.cpp`
-  (style in [.clang-format](.clang-format))
-- Lint: `clang-tidy -p build/debug Collatz.cpp main.cpp` (checks in [.clang-tidy](.clang-tidy))
+- Format: `clang-format -i *.cpp *.h tests/*.cpp` (style in [.clang-format](.clang-format))
+- Lint: `clang-tidy -p build/debug *.cpp` (checks in [.clang-tidy](.clang-tidy))
 - CI runs the build/test matrix (GCC and Clang), an ASan/UBSan job, clang-format,
   and clang-tidy on every push and pull request.
 
@@ -116,7 +114,9 @@ ctest --preset debug
 | `main.cpp`    | Interactive driver: prompts, input validation, result summary    |
 | `Collatz.h`   | `Collatz` class interface and the `CollatzResult` data point     |
 | `Collatz.cpp` | Iteration counting, mode selection, primality test, file output  |
-| `tests/`      | Catch2 unit tests for the computation logic                      |
+| `Input.h`     | `parseUnsigned`, the strict number parser used for all prompts   |
+| `Input.cpp`   | `parseUnsigned` implementation                                   |
+| `tests/`      | Catch2 unit tests for the computation logic and input parsing    |
 
 ## License
 

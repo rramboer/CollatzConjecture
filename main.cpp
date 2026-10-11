@@ -3,12 +3,18 @@
 // to the mode's text file. See README.md for details.
 
 #include "Collatz.h"
+#include "Input.h"
 
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
+#include <optional>
+#include <string>
 
 namespace {
+
+constexpr std::uint64_t kMaxInput = std::numeric_limits<std::uint64_t>::max();
 
 // Prints the options menu
 void printMenu() {
@@ -21,21 +27,34 @@ void printMenu() {
               << "6. Multiples of <X>\n";
 }
 
-// Reads one integer from stdin; returns false on non-numeric input or EOF.
-bool readNumber(long long& value) { return static_cast<bool>(std::cin >> value); }
+// Reads one whitespace-separated token from stdin and parses it with
+// parseUnsigned(). Returns false on EOF or if the token is not a valid number.
+bool readNumber(std::uint64_t& value) {
+    std::string token;
+    if (!(std::cin >> token)) {
+        return false;
+    }
+    const std::optional<std::uint64_t> parsed = parseUnsigned(token);
+    if (!parsed) {
+        return false;
+    }
+    value = *parsed;
+    return true;
+}
 
 } // namespace
 
 int main() {
-    long long initNum = 0;
+    std::uint64_t initNum = 0;
     std::cout << "Enter the upper bound (a positive integer):   ";
     if (!readNumber(initNum) || initNum < 1) {
-        std::cerr << "Error: the upper bound must be a positive integer.\n";
+        std::cerr << "Error: the upper bound must be a whole number from 1 to " << kMaxInput
+                  << ".\n";
         return EXIT_FAILURE;
     }
 
     printMenu();
-    long long choice = 0;
+    std::uint64_t choice = 0;
     std::cout << "Select a mode:\t";
     if (!readNumber(choice) || choice < 1 || choice > 6) {
         std::cerr << "Error: the mode must be a number between 1 and 6.\n";
@@ -43,18 +62,18 @@ int main() {
     }
     std::cout << '\n';
 
-    long long multiplesOf = 1;
+    std::uint64_t multiplesOf = 1;
     if (choice == 6) {
         std::cout << "Which integer multiples?\t";
         if (!readNumber(multiplesOf) || multiplesOf < 1) {
-            std::cerr << "Error: the multiple must be a positive integer.\n";
+            std::cerr << "Error: the multiple must be a whole number from 1 to " << kMaxInput
+                      << ".\n";
             return EXIT_FAILURE;
         }
     }
     std::cout << "\n";
 
-    Collatz c(static_cast<std::uint64_t>(initNum), static_cast<Collatz::Mode>(choice),
-              static_cast<std::uint64_t>(multiplesOf));
+    Collatz c(initNum, static_cast<Collatz::Mode>(choice), multiplesOf);
     c.doCalculations();
 
     for (const std::uint64_t start : c.overflowed()) {

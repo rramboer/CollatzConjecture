@@ -34,13 +34,9 @@ void Collatz::doCalculations() {
         }
         return;
     case Mode::Primes:
-        // Reproduces the historical output of this mode byte-for-byte: the
-        // original program tested only odd starting values, and its primality
-        // test accepted 1, so the first line is "1 0" and 2 never appears.
-        // isPrime() itself is mathematically correct; it agrees with the
-        // original test for every odd value >= 3 checked by the loop below.
-        if (num_ >= 1) {
-            record(1);
+        // 2 is the only even prime, so only odd candidates are tested after it.
+        if (num_ >= 2) {
+            record(2);
         }
         for (std::uint64_t i = 3; i <= num_; i += 2) {
             if (isPrime(i)) {

@@ -56,7 +56,7 @@ jobs:
           wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- 23
           sudo apt-get install -y clang-format-23
       - name: Check formatting
-        run: clang-format-23 --dry-run --Werror main.cpp Collatz.cpp Collatz.h tests/collatz_tests.cpp
+        run: clang-format-23 --dry-run --Werror *.cpp *.h tests/*.cpp
 
   clang-tidy:
     name: clang-tidy
@@ -70,4 +70,4 @@ jobs:
       - name: Configure (compile database)
         run: cmake --preset debug -DBUILD_TESTING=OFF
       - name: Run clang-tidy
-        run: clang-tidy-23 -p build/debug --warnings-as-errors='*' Collatz.cpp main.cpp
+        run: clang-tidy-23 -p build/debug --warnings-as-errors='*' *.cpp
