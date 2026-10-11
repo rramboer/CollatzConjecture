@@ -1,7 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <optional>
+#include <expected>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -27,6 +28,12 @@ class Collatz {
         MultiplesOf = 6,
     };
 
+    /// Why iterate() could not produce an iteration count.
+    enum class IterateError : std::uint8_t {
+        ZeroStart, ///< 0 maps to itself and never reaches 1.
+        Overflow,  ///< A 3n + 1 step would exceed 64 bits.
+    };
+
     Collatz(std::uint64_t upperBound, Mode mode, std::uint64_t multiplesOf = 1);
 
     /// Computes the iteration count for every starting number selected by
@@ -40,13 +47,43 @@ class Collatz {
     /// Returns the output file name for the selected mode.
     [[nodiscard]] std::string fileVers() const;
 
-    /// Returns the number of iterations needed to reach 1 from `start`,
-    /// or std::nullopt if `start` is 0 or the trajectory would overflow
-    /// 64 bits.
-    [[nodiscard]] static std::optional<std::uint64_t> iterate(std::uint64_t start);
+    /// Returns the number of iterations needed to reach 1 from `start`.
+    [[nodiscard]] static constexpr std::expected<std::uint64_t, IterateError>
+    iterate(std::uint64_t start) {
+        if (start == 0) {
+            return std::unexpected(IterateError::ZeroStart);
+        }
+        std::uint64_t curr = start;
+        std::uint64_t numIter = 0;
+        while (curr != 1) {
+            ++numIter;
+            if (curr % 2 == 0) { // even
+                curr = curr / 2;
+            } else { // odd
+                if (curr > (kMax - 1) / 3) {
+                    return std::unexpected(IterateError::Overflow);
+                }
+                curr = (3 * curr) + 1;
+            }
+        }
+        return numIter;
+    }
 
     /// Determines whether `testNum` is prime.
-    [[nodiscard]] static bool isPrime(std::uint64_t testNum);
+    [[nodiscard]] static constexpr bool isPrime(std::uint64_t testNum) {
+        if (testNum < 2) {
+            return false;
+        }
+        if (testNum % 2 == 0) {
+            return testNum == 2;
+        }
+        for (std::uint64_t i = 3; i <= testNum / i; i += 2) {
+            if (testNum % i == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     [[nodiscard]] const std::vector<CollatzResult>& results() const { return results_; }
 
@@ -59,6 +96,8 @@ class Collatz {
     [[nodiscard]] std::uint64_t maxIter() const { return maxIter_; }
 
   private:
+    static constexpr std::uint64_t kMax = std::numeric_limits<std::uint64_t>::max();
+
     /// Computes and stores one data point, updating the running maximum.
     void record(std::uint64_t start);
 

@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <expected>
 #include <fstream>
 #include <limits>
 #include <string>
@@ -23,14 +24,18 @@ std::vector<std::uint64_t> starts(const Collatz& c) {
 }
 } // namespace
 
-TEST_CASE("iterate counts steps to reach 1", "[iterate]") {
-    CHECK(Collatz::iterate(1) == 0);
-    CHECK(Collatz::iterate(2) == 1);
-    CHECK(Collatz::iterate(3) == 7);
-    CHECK(Collatz::iterate(6) == 8);
-    CHECK(Collatz::iterate(7) == 16);
-    CHECK(Collatz::iterate(27) == 111);
-    CHECK(Collatz::iterate(97) == 118);
+using IterateError = Collatz::IterateError;
+
+// iterate() and isPrime() are constexpr, so these checks run at compile time:
+// a wrong result fails the build rather than the test run.
+TEST_CASE("iterate counts steps to reach 1", "[iterate][constexpr]") {
+    STATIC_CHECK(Collatz::iterate(1) == 0U);
+    STATIC_CHECK(Collatz::iterate(2) == 1U);
+    STATIC_CHECK(Collatz::iterate(3) == 7U);
+    STATIC_CHECK(Collatz::iterate(6) == 8U);
+    STATIC_CHECK(Collatz::iterate(7) == 16U);
+    STATIC_CHECK(Collatz::iterate(27) == 111U);
+    STATIC_CHECK(Collatz::iterate(97) == 118U);
 }
 
 TEST_CASE("iterate on powers of two returns the exponent", "[iterate]") {
@@ -39,35 +44,35 @@ TEST_CASE("iterate on powers of two returns the exponent", "[iterate]") {
     }
 }
 
-TEST_CASE("iterate rejects 0 (its trajectory never reaches 1)", "[iterate]") {
-    CHECK_FALSE(Collatz::iterate(0).has_value());
+TEST_CASE("iterate rejects 0 (its trajectory never reaches 1)", "[iterate][constexpr]") {
+    STATIC_CHECK(Collatz::iterate(0) == std::unexpected(IterateError::ZeroStart));
 }
 
-TEST_CASE("iterate reports overflow instead of wrapping", "[iterate][overflow]") {
+TEST_CASE("iterate reports overflow instead of wrapping", "[iterate][overflow][constexpr]") {
     // kMax is odd, so the first step is 3n + 1, which cannot fit in 64 bits.
-    CHECK_FALSE(Collatz::iterate(kMax).has_value());
+    STATIC_CHECK(Collatz::iterate(kMax) == std::unexpected(IterateError::Overflow));
     // kMax - 1 halves once to an odd value that still overflows 3n + 1.
-    CHECK_FALSE(Collatz::iterate(kMax - 1).has_value());
+    STATIC_CHECK(Collatz::iterate(kMax - 1) == std::unexpected(IterateError::Overflow));
     // The smallest odd value whose very first step 3n + 1 overflows.
-    const std::uint64_t threshold = (kMax - 1) / 3; // even, so +1 is odd
-    REQUIRE((threshold + 1) % 2 == 1);
-    CHECK_FALSE(Collatz::iterate(threshold + 1).has_value());
+    constexpr std::uint64_t threshold = (kMax - 1) / 3; // even, so +1 is odd
+    STATIC_REQUIRE((threshold + 1) % 2 == 1);
+    STATIC_CHECK(Collatz::iterate(threshold + 1) == std::unexpected(IterateError::Overflow));
     // Just below the guard, a power of two halves down without overflowing.
-    CHECK(Collatz::iterate(std::uint64_t{1} << 62).has_value());
+    STATIC_CHECK(Collatz::iterate(std::uint64_t{1} << 62) == 62U);
 }
 
-TEST_CASE("isPrime classifies small numbers", "[isPrime]") {
-    CHECK_FALSE(Collatz::isPrime(0));
-    CHECK_FALSE(Collatz::isPrime(1));
-    CHECK(Collatz::isPrime(2));
-    CHECK(Collatz::isPrime(3));
-    CHECK_FALSE(Collatz::isPrime(4));
-    CHECK(Collatz::isPrime(5));
-    CHECK_FALSE(Collatz::isPrime(9));
-    CHECK_FALSE(Collatz::isPrime(15));
-    CHECK(Collatz::isPrime(97));
-    CHECK_FALSE(Collatz::isPrime(1000000));
-    CHECK(Collatz::isPrime(1000003));
+TEST_CASE("isPrime classifies small numbers", "[isPrime][constexpr]") {
+    STATIC_CHECK_FALSE(Collatz::isPrime(0));
+    STATIC_CHECK_FALSE(Collatz::isPrime(1));
+    STATIC_CHECK(Collatz::isPrime(2));
+    STATIC_CHECK(Collatz::isPrime(3));
+    STATIC_CHECK_FALSE(Collatz::isPrime(4));
+    STATIC_CHECK(Collatz::isPrime(5));
+    STATIC_CHECK_FALSE(Collatz::isPrime(9));
+    STATIC_CHECK_FALSE(Collatz::isPrime(15));
+    STATIC_CHECK(Collatz::isPrime(97));
+    STATIC_CHECK_FALSE(Collatz::isPrime(1000000));
+    STATIC_CHECK(Collatz::isPrime(1000003));
 }
 
 TEST_CASE("mode All records every value and tracks the maximum", "[modes]") {
@@ -170,15 +175,22 @@ TEST_CASE("parseUnsigned accepts plain decimal digits across the 64-bit range", 
     CHECK(parseUnsigned("18446744073709551615") == kMax);
 }
 
-TEST_CASE("parseUnsigned rejects anything that is not entirely a 64-bit number", "[input]") {
-    CHECK_FALSE(parseUnsigned("").has_value());
-    CHECK_FALSE(parseUnsigned("18446744073709551616").has_value()); // 2^64
-    CHECK_FALSE(parseUnsigned("-5").has_value());
-    CHECK_FALSE(parseUnsigned("+5").has_value());
-    CHECK_FALSE(parseUnsigned("1,000,000").has_value());
-    CHECK_FALSE(parseUnsigned("1e6").has_value());
-    CHECK_FALSE(parseUnsigned("1.5").has_value());
-    CHECK_FALSE(parseUnsigned("12abc").has_value());
-    CHECK_FALSE(parseUnsigned("0x10").has_value());
-    CHECK_FALSE(parseUnsigned(" 5").has_value());
+TEST_CASE("parseUnsigned rejects text that is not only digits", "[input]") {
+    const auto notANumber = std::unexpected(ParseError::NotANumber);
+    CHECK(parseUnsigned("") == notANumber);
+    CHECK(parseUnsigned("-5") == notANumber);
+    CHECK(parseUnsigned("+5") == notANumber);
+    CHECK(parseUnsigned("1,000,000") == notANumber);
+    CHECK(parseUnsigned("1e6") == notANumber);
+    CHECK(parseUnsigned("1.5") == notANumber);
+    CHECK(parseUnsigned("12abc") == notANumber);
+    CHECK(parseUnsigned("0x10") == notANumber);
+    CHECK(parseUnsigned(" 5") == notANumber);
+    CHECK(parseUnsigned("99999999999999999999abc") == notANumber);
+}
+
+TEST_CASE("parseUnsigned reports values above 2^64 - 1 as out of range", "[input]") {
+    const auto outOfRange = std::unexpected(ParseError::OutOfRange);
+    CHECK(parseUnsigned("18446744073709551616") == outOfRange); // 2^64
+    CHECK(parseUnsigned("99999999999999999999") == outOfRange);
 }
