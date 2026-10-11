@@ -18,7 +18,7 @@ the starting value with the most iterations.
 
 ## Requirements
 
-- A C++23 compiler (tested with GCC 14 and Clang)
+- A C++23 compiler (CI tests GCC 15 and Clang 22)
 - CMake 3.25 or newer
 
 ## Building

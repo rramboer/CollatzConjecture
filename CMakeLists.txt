@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25...4.3)
+cmake_minimum_required(VERSION 3.25...4.4)
 
 project(CollatzConjecture
     VERSION 1.0.0

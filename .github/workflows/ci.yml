@@ -8,22 +8,22 @@ on:
 jobs:
   build-and-test:
     name: Build & test (${{ matrix.name }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: gcc
-            cc: gcc
-            cxx: g++
-          - name: clang
-            cc: clang
-            cxx: clang++
+          - name: gcc 15
+            cc: gcc-15
+            cxx: g++-15
+          - name: clang 22
+            cc: clang-22
+            cxx: clang++-22
     env:
       CC: ${{ matrix.cc }}
       CXX: ${{ matrix.cxx }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Configure
         run: cmake --preset ci
       - name: Build
@@ -33,9 +33,12 @@ jobs:
 
   sanitizers:
     name: ASan + UBSan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
+    env:
+      CC: gcc-15
+      CXX: g++-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Configure
         run: cmake --preset asan
       - name: Build
@@ -45,26 +48,26 @@ jobs:
 
   format:
     name: clang-format
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v4
-      - name: Install clang-format 22
+      - uses: actions/checkout@v7
+      - name: Install clang-format 23
         run: |
-          wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- 22
-          sudo apt-get install -y clang-format-22
+          wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- 23
+          sudo apt-get install -y clang-format-23
       - name: Check formatting
-        run: clang-format-22 --dry-run --Werror main.cpp Collatz.cpp Collatz.h tests/collatz_tests.cpp
+        run: clang-format-23 --dry-run --Werror main.cpp Collatz.cpp Collatz.h tests/collatz_tests.cpp
 
   clang-tidy:
     name: clang-tidy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v4
-      - name: Install clang-tidy 22
+      - uses: actions/checkout@v7
+      - name: Install clang-tidy 23
         run: |
-          wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- 22
-          sudo apt-get install -y clang-tidy-22
+          wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- 23
+          sudo apt-get install -y clang-tidy-23
       - name: Configure (compile database)
         run: cmake --preset debug -DBUILD_TESTING=OFF
       - name: Run clang-tidy
-        run: clang-tidy-22 -p build/debug --warnings-as-errors='*' Collatz.cpp main.cpp
+        run: clang-tidy-23 -p build/debug --warnings-as-errors='*' Collatz.cpp main.cpp
