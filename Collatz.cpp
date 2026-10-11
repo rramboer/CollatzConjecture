@@ -2,13 +2,7 @@
 
 #include <cstdint>
 #include <fstream>
-#include <limits>
-#include <optional>
 #include <string>
-
-namespace {
-constexpr std::uint64_t kMax = std::numeric_limits<std::uint64_t>::max();
-} // namespace
 
 Collatz::Collatz(std::uint64_t upperBound, Mode mode, std::uint64_t multiplesOf)
     : mode_(mode), num_(upperBound), multiplesOf_(multiplesOf) {}
@@ -54,9 +48,11 @@ void Collatz::doCalculations() {
 }
 
 void Collatz::record(std::uint64_t start) {
-    const std::optional<std::uint64_t> iter = iterate(start);
+    const auto iter = iterate(start);
     if (!iter) {
-        overflowed_.push_back(start);
+        if (iter.error() == IterateError::Overflow) {
+            overflowed_.push_back(start);
+        }
         return;
     }
     if (results_.empty() || *iter > maxIter_) {
@@ -79,47 +75,14 @@ void Collatz::recordRange(std::uint64_t first, std::uint64_t step) {
     }
 }
 
-bool Collatz::isPrime(std::uint64_t testNum) {
-    if (testNum < 2) {
-        return false;
-    }
-    if (testNum % 2 == 0) {
-        return testNum == 2;
-    }
-    for (std::uint64_t i = 3; i <= testNum / i; i += 2) {
-        if (testNum % i == 0) {
-            return false;
-        }
-    }
-    return true;
-}
-
-std::optional<std::uint64_t> Collatz::iterate(std::uint64_t start) {
-    if (start == 0) {
-        return std::nullopt; // 0 -> 0 -> ... never reaches 1
-    }
-    std::uint64_t curr = start;
-    std::uint64_t numIter = 0;
-    while (curr != 1) {
-        ++numIter;
-        if (curr % 2 == 0) { // even
-            curr = curr / 2;
-        } else { // odd
-            if (curr > (kMax - 1) / 3) {
-                return std::nullopt; // 3n + 1 would overflow 64 bits
-            }
-            curr = (3 * curr) + 1;
-        }
-    }
-    return numIter;
-}
-
 bool Collatz::print() const {
     std::ofstream fout(fileVers());
     if (!fout) {
         return false;
     }
     for (const CollatzResult& point : results_) {
+        // operator<< rather than std::println: this loop can write millions of
+        // lines, and std::println's per-call overhead roughly doubles the time.
         fout << point.start << ' ' << point.iterations << '\n';
     }
     fout.flush();

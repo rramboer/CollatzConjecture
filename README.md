@@ -112,8 +112,8 @@ ctest --preset debug
 | File          | Role                                                            |
 | ------------- | --------------------------------------------------------------- |
 | `main.cpp`    | Interactive driver: prompts, input validation, result summary    |
-| `Collatz.h`   | `Collatz` class interface and the `CollatzResult` data point     |
-| `Collatz.cpp` | Iteration counting, mode selection, primality test, file output  |
+| `Collatz.h`   | `Collatz` class, `CollatzResult`, constexpr `iterate`/`isPrime`  |
+| `Collatz.cpp` | Mode selection, result recording, file output                   |
 | `Input.h`     | `parseUnsigned`, the strict number parser used for all prompts   |
 | `Input.cpp`   | `parseUnsigned` implementation                                   |
 | `tests/`      | Catch2 unit tests for the computation logic and input parsing    |
